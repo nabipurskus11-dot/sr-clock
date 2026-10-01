@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sessions">
+<meta name="theme-color" content="#090B10">
+<title>Market Sessions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#090B10;
+    --panel:#12161D;
+    --panel-alt:#161B24;
+    --line:#242B38;
+    --text:#EAEDF2;
+    --text-dim:#8891A3;
+    --open:#38E28E;
+    --gold:#D8A94E;
+    --sydney:#7DD3FC;
+    --tokyo:#F7A6A0;
+    --asia:#F3C15E;
+    --frankfurt:#B9A6F5;
+    --london:#8FBFFA;
+    --newyork:#5FE0B5;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;
+    -webkit-user-select:none; user-select:none;}
+  html{height:100%; overscroll-behavior:none;}
+  body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased;
+    min-height:100%; min-height:100dvh; overscroll-behavior-y:contain;
+    -webkit-text-size-adjust:100%;}
+  .app{max-width:460px;margin:0 auto;min-height:100vh;min-height:100dvh;
+    padding:calc(env(safe-area-inset-top,0px) + 18px) 18px
+             calc(env(safe-area-inset-bottom,0px) + 28px);}
+
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+  h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:21px;margin:0;letter-spacing:0.2px;}
+  .live-badge{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;
+    font-size:11px;color:var(--text-dim);}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--open);
+    box-shadow:0 0 8px var(--open);animation:pulse 1.6s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+
+  .subhead{color:var(--text-dim);font-size:12.5px;margin:2px 0 18px;font-family:'IBM Plex Mono',monospace;}
+
+  .owner-name{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:1.3px;
+    margin:2px 0 3px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:linear-gradient(90deg,#D8A94E 0%, #F6E7C4 25%, #D8A94E 50%, #F6E7C4 75%, #D8A94E 100%);
+    background-size:250% auto;
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    animation:shine 4.5s linear infinite;
+  }
+  .owner-name .spark{
+    font-size:11px;
+    -webkit-text-fill-color:initial;
+    background:none;
+    animation:sparkle 1.8s ease-in-out infinite;
+  }
+  .owner-name-2{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:1.3px;
+    margin:0 0 14px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:linear-gradient(90deg,#6FA8DC 0%, #C9E4FF 25%, #6FA8DC 50%, #C9E4FF 75%, #6FA8DC 100%);
+    background-size:250% auto;
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    animation:shine 4.5s linear infinite;
+  }
+  .owner-name-2 .spark{
+    font-size:11px;
+    -webkit-text-fill-color:initial;
+    background:none;
+    animation:sparkle 1.8s ease-in-out infinite;
+  }
+  @keyframes shine{
+    0%{background-position:0% center;}
+    100%{background-position:250% center;}
+  }
+  @keyframes sparkle{
+    0%,100%{opacity:.4; transform:scale(0.9);}
+    50%{opacity:1; transform:scale(1.15);}
+  }
+
+  .dial-wrap{position:relative;display:flex;justify-content:center;margin-bottom:6px;}
+  .dial-wrap svg{width:100%; max-width:360px; height:auto; display:block;}
+  .dial-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    text-align:center;pointer-events:none;}
+  .dial-time{font-family:'IBM Plex Mono',monospace;font-size:21px;font-weight:600;letter-spacing:0.5px;white-space:nowrap;}
+  .dial-tz{font-size:10.5px;color:var(--text-dim);margin-top:2px;font-family:'IBM Plex Mono',monospace;}
+
+  .weekend-banner{background:linear-gradient(135deg,#1C1710,#12161D);
+    border:1px solid #3A2E14;color:var(--gold);border-radius:14px;padding:12px 14px;
+    font-size:12.5px;line-height:1.5;margin-bottom:18px;display:flex;gap:10px;align-items:flex-start;}
+  .weekend-banner b{font-family:'Space Grotesk',sans-serif;}
+
+  .section-label{display:flex;justify-content:space-between;align-items:baseline;
+    margin:22px 0 10px;}
+  .section-label span:first-child{font-family:'Space Grotesk',sans-serif;font-weight:700;
+    font-size:14.5px;color:var(--text);}
+  .section-label span:last-child{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim);}
+
+  .empty-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:26px 18px;text-align:center;color:var(--text-dim);font-size:14px;}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:10px;
+    border-left-width:3px;transition:border-color .3s;}
+  .card.is-open{background:var(--panel-alt);}
+  .flag{font-size:24px;width:30px;text-align:center;}
+  .info{flex:1;min-width:0;}
+  .name{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;}
+  .hours{color:var(--text-dim);font-size:12px;font-family:'IBM Plex Mono',monospace;margin-top:1px;}
+  .stat{text-align:right;}
+  .stat-label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;}
+  .stat-value{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:16px;}
+  .stat-value.open-now{color:var(--open);}
+  .countdown-row{display:flex;gap:22px;}
+  .countdown-unit{text-align:center;min-width:44px;}
+  .countdown-unit .num{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:22px;display:block;color:var(--text);}
+  .countdown-unit .unit{font-size:11px;color:var(--text-dim);text-transform:capitalize;letter-spacing:.2px;}
+
+  footer{text-align:center;color:var(--text-dim);font-size:11px;margin-top:26px;font-family:'IBM Plex Mono',monospace;}
+
+  .header-actions{display:flex;align-items:center;gap:8px;}
+  .icon-btn{background:var(--panel);border:1px solid var(--line);color:var(--text-dim);
+    width:26px;height:26px;border-radius:8px;font-size:14px;line-height:1;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
+  .icon-btn:active{background:var(--line);}
+
+  .modal-overlay{position:fixed;inset:0;background:rgba(4,5,8,.6);
+    display:flex;align-items:flex-end;justify-content:center;
+    opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:1000;}
+  .modal-overlay.open{opacity:1;pointer-events:auto;}
+  .modal-sheet{width:100%;max-width:460px;background:var(--panel);
+    border-radius:20px 20px 0 0;border:1px solid var(--line);border-bottom:none;
+    padding:16px 18px calc(env(safe-area-inset-bottom,0px) + 20px);
+    max-height:82vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    transform:translateY(24px);transition:transform .25s ease;}
+  .modal-overlay.open .modal-sheet{transform:translateY(0);}
+  .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .modal-header .title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15.5px;}
+  .modal-sub{color:var(--text-dim);font-size:11.5px;margin-bottom:14px;font-family:'IBM Plex Mono',monospace;}
+
+  .lt-section-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .lt-icon-box{width:34px;height:34px;border-radius:10px;border:1.5px solid var(--text-dim);
+    display:flex;align-items:center;justify-content:center;color:var(--text);flex-shrink:0;}
+  .lt-icon-box svg{width:18px;height:18px;}
+  .lt-section-header .lt-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;}
+  .lt-card{background:var(--panel-alt);border:1px solid var(--line);border-radius:14px;
+    padding:4px 16px;margin-bottom:20px;}
+  .lt-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;}
+  .lt-row + .lt-row{border-top:1px solid var(--line);}
+  .lt-label{color:var(--text-dim);font-size:14.5px;}
+  .lt-value-wrap{display:flex;align-items:center;gap:10px;}
+  .lt-value{font-family:'IBM Plex Mono',monospace;font-size:17px;color:var(--text);}
+  .lt-edit-btn{background:none;border:none;color:var(--text-dim);font-size:15px;cursor:pointer;padding:2px;}
+  .lt-edit-btn:active{color:var(--gold);}
+  .lt-edit-row{display:none;align-items:center;gap:8px;padding:0 0 14px;flex-wrap:wrap;}
+  .lt-edit-row.show{display:flex;}
+  .lt-edit-row select, .lt-edit-row input[type=number]{background:var(--panel);border:1px solid var(--line);
+    color:var(--text);border-radius:8px;padding:6px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;
+    -webkit-user-select:auto;user-select:auto;}
+  .lt-edit-row input[type=number]{width:52px;}
+  .lt-edit-row .btn-set,.lt-edit-row .btn-clear{flex:none;padding:7px 14px;font-size:12px;}
+  .lt-select{background:var(--panel);border:1px solid var(--line);color:var(--text);
+    border-radius:8px;padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px;
+    max-width:170px;}
+  .section-divider{height:1px;background:var(--line);margin:6px 0 18px;}
+
+  .alarm-item{background:var(--panel-alt);border:1px solid var(--line);
+    border-radius:14px;padding:12px 14px;margin-bottom:10px;}
+  .alarm-item-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .alarm-item .flag{font-size:19px;width:22px;text-align:center;}
+  .alarm-item .name{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13.5px;flex:1;}
+  .alarm-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+  .alarm-row label{font-size:11px;color:var(--text-dim);}
+  input[type=time]{background:var(--panel);border:1px solid var(--line);color:var(--text);
+    border-radius:8px;padding:6px 8px;font-family:'IBM Plex Mono',monospace;font-size:14px;
+    -webkit-user-select:auto; user-select:auto;}
+  .repeat-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-dim);}
+  input[type=checkbox]{-webkit-user-select:auto; user-select:auto; accent-color:var(--gold);}
+  .alarm-actions{display:flex;gap:8px;}
+  .btn-set,.btn-clear{flex:1;border:none;border-radius:10px;padding:8px 0;
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12.5px;cursor:pointer;}
+  .btn-set{background:var(--gold);color:#241a06;}
+  .btn-clear{background:var(--line);color:var(--text-dim);}
+  .alarm-status{font-size:11px;color:var(--gold);margin-top:8px;font-family:'IBM Plex Mono',monospace;min-height:14px;}
+
+  .alarm-toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 14px);
+    transform:translateX(-50%) translateY(-140%);
+    background:#1C1710;border:1px solid var(--gold);color:var(--gold);
+    padding:11px 16px;border-radius:14px;font-family:'Space Grotesk',sans-serif;
+    font-weight:700;font-size:12.5px;z-index:1100;transition:transform .35s ease;
+    box-shadow:0 10px 30px rgba(0,0,0,.5);display:flex;align-items:center;gap:10px;
+    max-width:90vw;}
+  .alarm-toast.show{transform:translateX(-50%) translateY(0);}
+  .alarm-toast button{background:none;border:1px solid var(--gold);color:var(--gold);
+    border-radius:8px;padding:4px 9px;font-size:10.5px;cursor:pointer;
+    font-family:'IBM Plex Mono',monospace;}
+
+  .app{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 86px);}
+
+  .view{display:none;}
+  .view.active{display:block;}
+
+  .bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:900;
+    display:flex;justify-content:center;
+    background:rgba(9,11,16,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border-top:1px solid var(--line);
+    padding:10px 0 calc(env(safe-area-inset-bottom,0px) + 10px);}
+  .bottom-nav-inner{width:100%;max-width:460px;display:flex;}
+  .nav-btn{flex:1;background:none;border:none;color:var(--text-dim);
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    padding:4px 0;cursor:pointer;font-family:'Space Grotesk',sans-serif;
+    font-weight:600;font-size:11.5px;}
+  .nav-btn svg{width:22px;height:22px;}
+  .nav-btn.active{color:var(--open);}
+  .nav-btn.active svg{filter:drop-shadow(0 0 6px rgba(56,226,142,.5));}
+
+  .wc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .wc-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:14px 10px 12px;display:flex;flex-direction:column;align-items:center;}
+  .wc-card svg{width:100%;max-width:150px;height:auto;}
+  .wc-name-row{margin-top:10px;text-align:center;}
+  .wc-name-row .wc-name{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;}
+  .wc-name-row .wc-gmt{display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--text-dim);margin-top:1px;}
+  .wc-digital{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:15px;margin-top:6px;letter-spacing:.5px;}
+  .wc-status{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.5px;
+    text-transform:uppercase;margin-top:3px;padding:2px 8px;border-radius:20px;}
+  .wc-status.wc-open{color:var(--open);background:rgba(56,226,142,.12);}
+  .wc-status.wc-closed{color:var(--text-dim);background:rgba(255,255,255,.05);}
+
+  @media (max-width:360px){
+    .app{padding-left:12px;padding-right:12px;}
+    .card{padding:12px 10px;gap:8px;}
+    .flag{font-size:20px;width:24px;}
+    .name{font-size:13.5px;}
+    .hours{font-size:10.5px;}
+    .countdown-row{gap:14px;}
+    .countdown-unit{min-width:38px;}
+    .countdown-unit .num{font-size:19px;}
+    .countdown-unit .unit{font-size:10px;}
+    h1{font-size:19px;}
+    .dial-time{font-size:18px;}
+  }
+  @media (max-width:360px){
+    .wc-grid{gap:10px;}
+    .wc-card{padding:10px 6px 10px;}
+    .wc-name-row .wc-name{font-size:12.5px;}
+    .wc-digital{font-size:13px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="view active" id="sessionsView">
+  <header>
+    <h1>Market Sessions</h1>
+    <div class="header-actions">
+      <div class="live-badge"><span class="dot"></span>LIVE</div>
+      <button class="icon-btn" id="moreBtn" aria-label="More">⋯</button>
+    </div>
+  </header>
+  <div class="owner-name"><span class="spark">✦</span>SOHEL SHAIKH<span class="spark">✦</span></div>
+  <div class="owner-name-2"><span class="spark">✦</span>RUBEL SEIKH<span class="spark">✦</span></div>
+  <div class="subhead" id="dateLine">—</div>
+
+  <div class="dial-wrap">
+    <svg id="dial" width="360" height="360" viewBox="0 0 360 360"></svg>
+    <div class="dial-center">
+      <div class="dial-time" id="centerTime">--:--:--</div>
+      <div class="dial-tz" id="centerTz">GMT+0:00</div>
+    </div>
+  </div>
+
+  <div id="weekendBanner" style="display:none;" class="weekend-banner">
+    <span>🌙</span>
+    <div><b>Forex market closed for the weekend.</b><br>All sessions reopen <span id="weekendReopen">—</span>.</div>
+  </div>
+
+  <div class="section-label"><span>Open Now</span><span id="openTime">—</span></div>
+  <div id="openList"></div>
+
+  <div class="section-label"><span>Closed</span><span id="closedTime">—</span></div>
+  <div id="closedList"></div>
+
+  <footer>Session hours are standard trading-hour approximations, shown in your local time.</footer>
+</div>
+
+<div class="view" id="worldClocksView">
+  <header>
+    <h1>World Clocks</h1>
+    <div class="header-actions">
+      <div class="live-badge"><span class="dot"></span>LIVE</div>
+    </div>
+  </header>
+  <div class="subhead">Local time at each market center, right now.</div>
+  <div class="wc-grid" id="wcGrid"></div>
+</div>
+
+</div>
+
+<div class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <button class="nav-btn active" id="navSessions">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 4 6 4 9s-1.5 6.4-4 9c-2.5-2.6-4-6-4-9s1.5-6.4 4-9z"/></svg>
+      <span>Sessions</span>
+    </button>
+    <button class="nav-btn" id="navWorldClocks">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+      <span>World Clocks</span>
+    </button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="alarmModal">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <span class="title">More</span>
+      <button class="icon-btn" id="closeModal" aria-label="Close">✕</button>
+    </div>
+
+    <div class="lt-section-header">
+      <div class="lt-icon-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M12 8v4l2.4 1.4"/></svg>
+      </div>
+      <span class="lt-title">Local Time</span>
+    </div>
+    <div class="lt-card">
+      <div class="lt-row">
+        <span class="lt-label">Current Time</span>
+        <span class="lt-value" id="ltCurrentTime">--:--:--</span>
+      </div>
+      <div class="lt-row">
+        <span class="lt-label">GMT Offset</span>
+        <div class="lt-value-wrap">
+          <span class="lt-value" id="gmtOffsetValue">GMT+0:00</span>
+          <button class="lt-edit-btn" id="editOffsetBtn" aria-label="Edit GMT offset">✎</button>
+        </div>
+      </div>
+      <div class="lt-edit-row" id="offsetEditRow">
+        <select id="offsetSign"><option value="+">+</option><option value="-">−</option></select>
+        <input type="number" id="offsetHH" min="0" max="14" value="0">
+        <span>:</span>
+        <select id="offsetMM">
+          <option value="0">00</option><option value="15">15</option><option value="30">30</option><option value="45">45</option>
+        </select>
+        <button class="btn-set" id="saveOffsetBtn">Save</button>
+        <button class="btn-clear" id="resetOffsetBtn">Auto</button>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <div class="lt-section-header">
+      <div class="lt-icon-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l9-2v14"/><circle cx="6" cy="18" r="3"/><circle cx="15" cy="16" r="3"/></svg>
+      </div>
+      <span class="lt-title">Alarm Sound</span>
+    </div>
+    <div class="lt-card">
+      <div class="lt-row">
+        <span class="lt-label">Ringtone</span>
+        <select id="ringtoneSelect" class="lt-select">
+          <option value="birds">Cuckoo &amp; Morning Birds</option>
+          <option value="sohel">"Sohel, your session is start"</option>
+          <option value="rubel">"Rubel, your session is start"</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-set" id="testAlarmSoundBtn" style="margin-bottom:14px;">🔊 Test alarm sound</button>
+
+    <div class="section-divider"></div>
+
+    <div class="modal-header" style="margin-bottom:6px;">
+      <span class="title">Session Alarms</span>
+    </div>
+    <div class="modal-sub">Set an alarm for any market open/close, in Indian Standard Time (IST).</div>
+    <div id="alarmModalBody"></div>
+  </div>
+</div>
+
+<div class="alarm-toast" id="alarmToast">
+  <span id="alarmToastText"></span>
+  <button id="dismissToast">Dismiss</button>
+</div>
+
+<script>
+const SESSIONS = [
+  { key:'sydney',    name:'Sydney',                         flag:'🇦🇺', color:'var(--sydney)',    colorHex:'#7DD3FC', openUTC:21, closeUTC:6,  radius:150, dialLabel:'SYDNEY',    tz:'Australia/Sydney' },
+  { key:'tokyo',      name:'Tokyo',                          flag:'🇯🇵', color:'var(--tokyo)',     colorHex:'#F7A6A0', openUTC:0,  closeUTC:9,  radius:128, dialLabel:'TOKYO',     tz:'Asia/Tokyo' },
+  { key:'asia',       name:'Asia (Singapore / Hong Kong)',   flag:'🌏', color:'var(--asia)',      colorHex:'#F3C15E', openUTC:1,  closeUTC:9,  radius:106, dialLabel:'ASIA',      tz:'Asia/Singapore' },
+  { key:'frankfurt',  name:'Frankfurt',                      flag:'🇩🇪', color:'var(--frankfurt)', colorHex:'#B9A6F5', openUTC:6,  closeUTC:14, radius:84,  dialLabel:'FRANKFURT', tz:'Europe/Berlin' },
+  { key:'london',     name:'London',                         flag:'🇬🇧', color:'var(--london)',    colorHex:'#8FBFFA', openUTC:7,  closeUTC:16, radius:62,  dialLabel:'LONDON',    tz:'Europe/London' },
+  { key:'newyork',    name:'New York',                       flag:'🇺🇸', color:'var(--newyork)',   colorHex:'#6EE7B7', openUTC:12, closeUTC:21, radius:40,  dialLabel:'NEW YORK',  tz:'America/New_York' },
+];
+
+const cx = 180, cy = 180;
+
+// null = follow device timezone automatically; otherwise a manual override in minutes
+let customOffsetMin = null;
+function getOffsetMin(){
+  return customOffsetMin !== null ? customOffsetMin : -new Date().getTimezoneOffset();
+}
+function localNowDate(now){
+  const ms = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(),
+                       now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds())
+             + getOffsetMin()*60000;
+  return new Date(ms);
+}
+function pad2(n){ return String(n).padStart(2,'0'); }
+
+function hourToXY(hour, r){
+  const angle = (hour/24)*2*Math.PI;
+  return { x: cx + r*Math.sin(angle), y: cy - r*Math.cos(angle) };
+}
+
+function sixtyToXY(value, r){
+  const angle = (value/60)*2*Math.PI;
+  return { x: cx + r*Math.sin(angle), y: cy - r*Math.cos(angle) };
+}
+
+function utcToLocalDecimal(utcHour){
+  const offsetMin = getOffsetMin();
+  const total = (utcHour*60 + offsetMin + 1440) % 1440;
+  return total/60;
+}
+
+function arcPath(startHour, endHour, r){
+  let dur = (endHour - startHour + 24) % 24;
+  if (dur === 0) dur = 24;
+  const large = dur > 12 ? 1 : 0;
+  const s = hourToXY(startHour, r);
+  const e = hourToXY(endHour, r);
+  return `M ${s.x} ${s.y} A ${r} ${r} 0 ${large} 1 ${e.x} ${e.y}`;
+}
+
+function buildDialStatic(){
+  const svg = document.getElementById('dial');
+  let html = '';
+  // outer scale ring
+  html += `<circle cx="${cx}" cy="${cy}" r="158" fill="none" stroke="#1D2431" stroke-width="1"/>`;
+  for(let h=0; h<24; h++){
+    const p1 = hourToXY(h, 158);
+    const p2 = hourToXY(h, 152);
+    html += `<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="#2A3240" stroke-width="1"/>`;
+    const lp = hourToXY(h, 167);
+    const label = h === 0 ? 24 : h;
+    html += `<text x="${lp.x}" y="${lp.y+4}" text-anchor="middle" font-size="11" fill="#5C6577" font-family="IBM Plex Mono, monospace">${label}</text>`;
+  }
+  // background track rings + arcs (arcs drawn dynamically, tracks here)
+  SESSIONS.forEach(s=>{
+    html += `<circle cx="${cx}" cy="${cy}" r="${s.radius}" fill="none" stroke="#1A2029" stroke-width="9"/>`;
+  });
+  svg.innerHTML = html;
+
+  // now append dynamic groups (arcs + hand) that render() will update
+  SESSIONS.forEach(s=>{
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('id', 'arc-'+s.key);
+    path.setAttribute('fill','none');
+    path.setAttribute('stroke', s.color);
+    path.setAttribute('stroke-width', '9');
+    path.setAttribute('stroke-linecap','round');
+    path.setAttribute('opacity','0.55');
+    path.setAttribute('d', arcPath(utcToLocalDecimal(s.openUTC), utcToLocalDecimal(s.closeUTC), s.radius));
+    svg.appendChild(path);
+
+    // small tangential label sitting on the arc band, naming the market
+    const localOpen = utcToLocalDecimal(s.openUTC);
+    const localClose = utcToLocalDecimal(s.closeUTC);
+    let dur = (localClose - localOpen + 24) % 24;
+    if (dur === 0) dur = 24;
+    const midHour = (localOpen + dur/2) % 24;
+    const midPos = hourToXY(midHour, s.radius);
+    let rot = ((midHour/24)*360) % 360;
+    if (rot > 90 && rot < 270) rot -= 180;
+    const label = document.createElementNS('http://www.w3.org/2000/svg','text');
+    label.setAttribute('x', midPos.x);
+    label.setAttribute('y', midPos.y);
+    label.setAttribute('transform', `rotate(${rot} ${midPos.x} ${midPos.y})`);
+    label.setAttribute('text-anchor','middle');
+    label.setAttribute('dominant-baseline','middle');
+    label.setAttribute('font-size','7.4');
+    label.setAttribute('font-weight','700');
+    label.setAttribute('letter-spacing','0.6');
+    label.setAttribute('font-family',"'Space Grotesk', sans-serif");
+    label.setAttribute('fill','#10141B');
+    label.textContent = s.dialLabel;
+    svg.appendChild(label);
+  });
+
+  const hourHand = document.createElementNS('http://www.w3.org/2000/svg','line');
+  hourHand.setAttribute('id','hourHand');
+  hourHand.setAttribute('stroke','#3D4A66');
+  hourHand.setAttribute('stroke-width','4');
+  hourHand.setAttribute('stroke-linecap','round');
+  svg.appendChild(hourHand);
+
+  const minuteHand = document.createElementNS('http://www.w3.org/2000/svg','line');
+  minuteHand.setAttribute('id','minuteHand');
+  minuteHand.setAttribute('stroke','#6B7CA0');
+  minuteHand.setAttribute('stroke-width','2.5');
+  minuteHand.setAttribute('stroke-linecap','round');
+  svg.appendChild(minuteHand);
+
+  const secondHand = document.createElementNS('http://www.w3.org/2000/svg','line');
+  secondHand.setAttribute('id','secondHand');
+  secondHand.setAttribute('stroke','#E2483D');
+  secondHand.setAttribute('stroke-width','1.5');
+  secondHand.setAttribute('stroke-linecap','round');
+  svg.appendChild(secondHand);
+
+  const hub = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  hub.setAttribute('cx', cx); hub.setAttribute('cy', cy); hub.setAttribute('r', 5);
+  hub.setAttribute('fill', '#DADEE6');
+  svg.appendChild(hub);
+}
+
+function isWeekendClosed(now){
+  const day = now.getUTCDay(), hour = now.getUTCHours();
+  if (day === 6) return true;
+  if (day === 5 && hour >= 21) return true;
+  if (day === 0 && hour < 21) return true;
+  return false;
+}
+
+function nextWeekendOpen(now){
+  let d = new Date(now.getTime());
+  while (d.getUTCDay() !== 0) d.setUTCDate(d.getUTCDate()+1);
+  d.setUTCHours(21,0,0,0);
+  if (d <= now) d.setUTCDate(d.getUTCDate()+7);
+  return d;
+}
+
+function nextSessionOpen(s, now){
+  // Each session gets its own next-opening time. If that candidate still
+  // falls inside the weekend closure, keep advancing a day at a time until
+  // it lands on an actually-open moment for that session.
+  let d = nextOccurrenceUTC(s.openUTC, now);
+  while (isWeekendClosed(d)){
+    d.setUTCDate(d.getUTCDate()+1);
+  }
+  return d;
+}
+
+function nextOccurrenceUTC(hour, now){
+  let d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), hour, 0, 0));
+  if (d <= now) d.setUTCDate(d.getUTCDate()+1);
+  return d;
+}
+
+function sessionOpenNow(s, decHour){
+  if (s.openUTC < s.closeUTC) return decHour >= s.openUTC && decHour < s.closeUTC;
+  return decHour >= s.openUTC || decHour < s.closeUTC;
+}
+
+function localHM(utcHour){
+  const offsetMin = getOffsetMin();
+  let total = (utcHour*60 + offsetMin + 1440) % 1440;
+  const hh = Math.floor(total/60), mm = total%60;
+  return String(hh).padStart(2,'0') + ':' + String(mm).padStart(2,'0');
+}
+
+function fmtCountdown(ms){
+  const totalSec = Math.max(0, Math.floor(ms/1000));
+  const h = Math.floor(totalSec/3600);
+  const m = Math.floor((totalSec%3600)/60);
+  const sec = totalSec%60;
+  return {h,m,sec};
+}
+
+function fmtClock(d){
+  return d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit', second:'2-digit', hour12:true, timeZone:'UTC'});
+}
+
+function tzLabel(){
+  const offsetMin = getOffsetMin();
+  const sign = offsetMin >= 0 ? '+' : '-';
+  const abs = Math.abs(offsetMin);
+  const hh = Math.floor(abs/60), mm = abs%60;
+  return `GMT${sign}${hh}:${String(mm).padStart(2,'0')}`;
+}
+
+function render(){
+  const now = new Date();
+  const ld = localNowDate(now);
+  checkAlarms(now);
+  const decHour = now.getUTCHours() + now.getUTCMinutes()/60 + now.getUTCSeconds()/3600;
+  const weekendClosed = isWeekendClosed(now);
+
+  document.getElementById('centerTime').textContent = fmtClock(ld);
+  document.getElementById('centerTz').textContent = tzLabel();
+  document.getElementById('dateLine').textContent = ld.toLocaleDateString([], {weekday:'long', year:'numeric', month:'long', day:'numeric', timeZone:'UTC'});
+  document.getElementById('openTime').textContent = fmtClock(ld) + '  ' + tzLabel();
+  document.getElementById('closedTime').textContent = fmtClock(ld) + '  ' + tzLabel();
+
+  const ltCurrentTimeEl = document.getElementById('ltCurrentTime');
+  if (ltCurrentTimeEl) ltCurrentTimeEl.textContent = pad2(ld.getUTCHours())+':'+pad2(ld.getUTCMinutes())+':'+pad2(ld.getUTCSeconds());
+  const gmtOffsetValueEl = document.getElementById('gmtOffsetValue');
+  if (gmtOffsetValueEl) gmtOffsetValueEl.textContent = tzLabel();
+
+  const banner = document.getElementById('weekendBanner');
+  if (weekendClosed){
+    banner.style.display = 'flex';
+    const reopen = nextWeekendOpen(now);
+    document.getElementById('weekendReopen').textContent = reopen.toLocaleString([], {weekday:'long', hour:'2-digit', minute:'2-digit'});
+  } else {
+    banner.style.display = 'none';
+  }
+
+  // clock hands: hour on the 24h scale (local time, matching dial numbering), minute & second on the 60 scale
+  const localDecHour = ld.getUTCHours() + ld.getUTCMinutes()/60 + ld.getUTCSeconds()/3600;
+  const minuteVal = ld.getUTCMinutes() + ld.getUTCSeconds()/60;
+  const secondVal = ld.getUTCSeconds();
+
+  const hourXY = hourToXY(localDecHour, 112);
+  const hourHand = document.getElementById('hourHand');
+  hourHand.setAttribute('x1', cx); hourHand.setAttribute('y1', cy);
+  hourHand.setAttribute('x2', hourXY.x); hourHand.setAttribute('y2', hourXY.y);
+
+  const minuteXY = sixtyToXY(minuteVal, 145);
+  const minuteHand = document.getElementById('minuteHand');
+  minuteHand.setAttribute('x1', cx); minuteHand.setAttribute('y1', cy);
+  minuteHand.setAttribute('x2', minuteXY.x); minuteHand.setAttribute('y2', minuteXY.y);
+
+  const secondXY = sixtyToXY(secondVal, 160);
+  const secondHand = document.getElementById('secondHand');
+  secondHand.setAttribute('x1', cx); secondHand.setAttribute('y1', cy);
+  secondHand.setAttribute('x2', secondXY.x); secondHand.setAttribute('y2', secondXY.y);
+
+  const openList = [];
+  const closedList = [];
+
+  SESSIONS.forEach(s=>{
+    const openNow = !weekendClosed && sessionOpenNow(s, decHour);
+    const arcEl = document.getElementById('arc-'+s.key);
+    arcEl.setAttribute('opacity', openNow ? '1' : '0.6');
+    arcEl.setAttribute('stroke-width', openNow ? '11' : '9');
+    arcEl.setAttribute('stroke', openNow ? s.colorHex : '#9AA3B2');
+
+    if (openNow){
+      const closeAt = nextOccurrenceUTC(s.closeUTC, now);
+      openList.push({ s, ms: closeAt - now, label:'Closes in' });
+    } else {
+      const openAt = nextSessionOpen(s, now);
+      closedList.push({ s, ms: openAt - now, label:'Opens in' });
+    }
+  });
+
+  const openListEl = document.getElementById('openList');
+  const closedListEl = document.getElementById('closedList');
+
+  if (openList.length === 0){
+    openListEl.innerHTML = `<div class="empty-card">No Open Sessions Yet</div>`;
+  } else {
+    openList.sort((a,b)=>a.ms-b.ms);
+    openListEl.innerHTML = openList.map(item=>{
+      const c = fmtCountdown(item.ms);
+      return `
+      <div class="card is-open" style="border-left-color:${item.s.color}">
+        <div class="flag">${item.s.flag}</div>
+        <div class="info">
+          <div class="name">${item.s.name}</div>
+          <div class="hours">${localHM(item.s.openUTC)} to ${localHM(item.s.closeUTC)}</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">${item.label}</div>
+          <div class="countdown-row">
+            <div class="countdown-unit"><span class="num">${c.h}</span><span class="unit">Hours</span></div>
+            <div class="countdown-unit"><span class="num">${c.m}</span><span class="unit">Minutes</span></div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  closedList.sort((a,b)=>a.ms-b.ms);
+  closedListEl.innerHTML = closedList.map(item=>{
+    const c = fmtCountdown(item.ms);
+    return `
+    <div class="card" style="border-left-color:${item.s.color}">
+      <div class="flag">${item.s.flag}</div>
+      <div class="info">
+        <div class="name">${item.s.name}</div>
+        <div class="hours">${localHM(item.s.openUTC)} to ${localHM(item.s.closeUTC)}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">${item.label}</div>
+        <div class="countdown-row">
+          <div class="countdown-unit"><span class="num">${c.h}</span><span class="unit">Hours</span></div>
+          <div class="countdown-unit"><span class="num">${c.m}</span><span class="unit">Minutes</span></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ---------- Alarms (Indian Standard Time) ----------
+const alarms = {}; // key -> { hh, mm, repeat, lastFiredDate }
+
+function buildAlarmModal(){
+  const body = document.getElementById('alarmModalBody');
+  SESSIONS.forEach(s=>{
+    const item = document.createElement('div');
+    item.className = 'alarm-item';
+    item.innerHTML = `
+      <div class="alarm-item-top">
+        <div class="flag">${s.flag}</div>
+        <div class="name">${s.name}</div>
+      </div>
+      <div class="alarm-row">
+        <label>Time (IST)</label>
+        <input type="time" id="time-${s.key}">
+        <label class="repeat-row"><input type="checkbox" id="repeat-${s.key}"> Repeat daily</label>
+      </div>
+      <div class="alarm-actions">
+        <button class="btn-set" id="set-${s.key}">Set Alarm</button>
+        <button class="btn-clear" id="clear-${s.key}">Clear</button>
+      </div>
+      <div class="alarm-status" id="status-${s.key}"></div>
+    `;
+    body.appendChild(item);
+    item.querySelector('#set-'+s.key).addEventListener('click', ()=> setAlarm(s));
+    item.querySelector('#clear-'+s.key).addEventListener('click', ()=> clearAlarm(s));
+  });
+
+  document.getElementById('moreBtn').addEventListener('click', ()=>{
+    getAudioCtx();
+    openModal();
+  });
+  document.getElementById('closeModal').addEventListener('click', closeModal);
+  document.getElementById('alarmModal').addEventListener('click', (e)=>{
+    if (e.target.id === 'alarmModal') closeModal();
+  });
+  document.getElementById('dismissToast').addEventListener('click', hideToast);
+  document.getElementById('testAlarmSoundBtn').addEventListener('click', ()=>{
+    getAudioCtx();
+    playAlarmSound();
+  });
+
+  // ---- GMT offset editor ----
+  const editRow = document.getElementById('offsetEditRow');
+  document.getElementById('editOffsetBtn').addEventListener('click', ()=>{
+    const offsetMin = getOffsetMin();
+    const sign = offsetMin < 0 ? '-' : '+';
+    const abs = Math.abs(offsetMin);
+    document.getElementById('offsetSign').value = sign;
+    document.getElementById('offsetHH').value = Math.floor(abs/60);
+    document.getElementById('offsetMM').value = String(abs%60);
+    editRow.classList.add('show');
+  });
+  document.getElementById('saveOffsetBtn').addEventListener('click', ()=>{
+    const sign = document.getElementById('offsetSign').value === '-' ? -1 : 1;
+    const hh = Math.max(0, Math.min(14, Number(document.getElementById('offsetHH').value) || 0));
+    const mm = Number(document.getElementById('offsetMM').value) || 0;
+    customOffsetMin = sign * (hh*60 + mm);
+    editRow.classList.remove('show');
+    render();
+  });
+  document.getElementById('resetOffsetBtn').addEventListener('click', ()=>{
+    customOffsetMin = null;
+    editRow.classList.remove('show');
+    render();
+  });
+}
+
+function openModal(){
+  document.getElementById('alarmModal').classList.add('open');
+  history.pushState({ view: activeView, modal: true }, '');
+}
+
+function closeModal(){
+  // If the modal is open because of a history entry we pushed, let the
+  // hardware/back-gesture path (popstate) do the actual closing so both
+  // the on-screen X button and the phone's Back button behave the same.
+  if (history.state && history.state.modal){
+    history.back();
+  } else {
+    document.getElementById('alarmModal').classList.remove('open');
+  }
+}
+
+// ---------- Native (OS-level) alarm bridge ----------
+// A plain WebView page can't ring anything while the phone is locked/backgrounded —
+// Android suspends page JavaScript in that state. If the APK was built with a
+// wrapper that exposes the Cordova/Capacitor "Local Notifications" plugin
+// (e.g. Median.co, MobiLoud, GoNative), we use it so the alarm becomes a real
+// OS notification that fires — with sound — even on the lock screen. If the
+// plugin isn't present, we quietly fall back to the old foreground-only ring.
+function nativeNotifAvailable(){
+  return !!(window.cordova && window.cordova.plugins &&
+            window.cordova.plugins.notification && window.cordova.plugins.notification.local);
+}
+
+// Turns a session key into a stable small integer id required by the plugin
+function alarmNotifId(key){
+  let h = 0;
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) | 0;
+  return Math.abs(h) % 2147483647;
+}
+
+// Next UTC instant at which IST clock shows hh:mm
+function nextISTTrigger(hh, mm){
+  const now = new Date();
+  const nowIst = new Date(now.getTime() + 5.5 * 3600000);
+  let target = new Date(Date.UTC(nowIst.getUTCFullYear(), nowIst.getUTCMonth(), nowIst.getUTCDate(), hh, mm, 0) - 5.5 * 3600000);
+  if (target.getTime() <= now.getTime()) target = new Date(target.getTime() + 24 * 3600000);
+  return target;
+}
+
+function scheduleNativeAlarm(s, hh, mm, repeat){
+  if (!nativeNotifAvailable()) return false;
+  try{
+    const LN = window.cordova.plugins.notification.local;
+    const id = alarmNotifId(s.key);
+    LN.cancel(id, () => {
+      LN.schedule({
+        id,
+        title: `⏰ ${s.name} session`,
+        text: `It's ${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')} IST`,
+        trigger: repeat ? { at: nextISTTrigger(hh, mm), every: 'day' } : { at: nextISTTrigger(hh, mm) },
+        sound: 'default',
+        wakeup: true,
+        foreground: true,
+        priority: 2,
+        vibrate: true
+      });
+    });
+    return true;
+  } catch(e){ return false; }
+}
+
+function cancelNativeAlarm(s){
+  if (!nativeNotifAvailable()) return;
+  try{ window.cordova.plugins.notification.local.cancel(alarmNotifId(s.key)); }catch(e){}
+}
+
+// Ask once at startup for OS notification permission (needed for lock-screen ringing)
+document.addEventListener('deviceready', () => {
+  if (nativeNotifAvailable()){
+    window.cordova.plugins.notification.local.requestPermission(() => {});
+  }
+});
+
+function setAlarm(s){
+  getAudioCtx();
+  const val = document.getElementById('time-'+s.key).value;
+  if (!val){
+    document.getElementById('status-'+s.key).textContent = 'Pick a time first.';
+    return;
+  }
+  const [hh, mm] = val.split(':').map(Number);
+  const repeat = document.getElementById('repeat-'+s.key).checked;
+  alarms[s.key] = { hh, mm, repeat, lastFiredDate: null };
+  if ('Notification' in window && Notification.permission === 'default'){
+    Notification.requestPermission();
+  }
+  const nativeOk = scheduleNativeAlarm(s, hh, mm, repeat);
+  document.getElementById('status-'+s.key).textContent =
+    `Alarm set for ${val} IST${repeat ? ' · repeats daily' : ' · rings once'}` +
+    (nativeOk ? ' · will ring even when locked.' : ' · rings while the app is open.');
+}
+
+function clearAlarm(s){
+  delete alarms[s.key];
+  cancelNativeAlarm(s);
+  document.getElementById('status-'+s.key).textContent = 'Alarm cleared.';
+}
+
+function currentISTParts(now){
+  // now.getTime() is already a UTC epoch instant — just add the fixed IST offset (+5:30), once.
+  const istMs = now.getTime() + (5.5*3600000);
+  const d = new Date(istMs);
+  return {
+    hh: d.getUTCHours(),
+    mm: d.getUTCMinutes(),
+    dateStr: `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`
+  };
+}
+
+let audioCtx = null;
+function getAudioCtx(){
+  try{
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  } catch(e){ return null; }
+}
+
+function tone(ctx, t, dur, opts){
+  const { freq, glideTo=null, type='sine', peak=0.28 } = opts;
+  const o = ctx.createOscillator();
+  o.type = type;
+  o.frequency.setValueAtTime(freq, t);
+  if (glideTo !== null) o.frequency.linearRampToValueAtTime(glideTo, t+dur);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(peak, t+dur*0.3);
+  g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+  o.connect(g); g.connect(ctx.destination);
+  o.start(t); o.stop(t+dur+0.03);
+}
+
+// Two-note descending "cuck-oo" call, like a cuckoo clock / cuckoo bird
+function cuckooCall(ctx, t){
+  tone(ctx, t,       0.17, { freq:840, type:'sine', peak:0.32 });
+  tone(ctx, t+0.24,  0.24, { freq:640, type:'sine', peak:0.32 });
+}
+
+// A single quick upward-swept "tweet"
+function birdChirp(ctx, t){
+  const dur = 0.08 + Math.random()*0.05;
+  const startFreq = 2200 + Math.random()*700;
+  const endFreq = startFreq + 900 + Math.random()*600;
+  tone(ctx, t, dur, { freq:startFreq, glideTo:endFreq, type:'triangle', peak:0.16 });
+}
+
+// A trill of several chirps, like morning birdsong
+function birdTrill(ctx, t, count){
+  for (let i=0; i<count; i++){
+    birdChirp(ctx, t + i*(0.1 + Math.random()*0.06));
+  }
+}
+
+// Full alarm sound: a couple of cuckoo calls answered by a burst of morning bird chirping, repeated
+function playBirdsAndCuckoo(){
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  try{
+    const t0 = ctx.currentTime + 0.02;
+    const rounds = 3, roundLen = 1.9;
+    for (let r=0; r<rounds; r++){
+      const rt = t0 + r*roundLen;
+      cuckooCall(ctx, rt);
+      cuckooCall(ctx, rt + 0.55);
+      birdTrill(ctx, rt + 1.05, 6);
+    }
+  } catch(e){}
+}
+
+// Picks the clearest available English voice for speech synthesis
+function pickClearVoice(){
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices || !voices.length) return null;
+  return voices.find(v => /en-US/i.test(v.lang) && /Google/i.test(v.name))
+      || voices.find(v => /en-GB/i.test(v.lang) && /Google/i.test(v.name))
+      || voices.find(v => /en-US/i.test(v.lang))
+      || voices.find(v => /^en/i.test(v.lang))
+      || voices[0];
+}
+
+// Speaks a short phrase aloud, clearly and slowly, a couple of times
+function playSpokenAlert(text, repeats){
+  try{
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+
+    const speakNow = () => {
+      const voice = pickClearVoice();
+      let i = 0;
+      const sayOnce = () => {
+        if (i >= repeats) return;
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'en-US';
+        if (voice) u.voice = voice;
+        u.rate = 0.75;   // slower, for clarity
+        u.pitch = 1.0;
+        u.volume = 1;
+        u.onend = () => { i++; setTimeout(sayOnce, 700); };
+        window.speechSynthesis.speak(u);
+      };
+      sayOnce();
+    };
+
+    // Voice list may not be loaded yet on the very first call in some browsers
+    if (window.speechSynthesis.getVoices().length === 0){
+      let started = false;
+      window.speechSynthesis.onvoiceschanged = () => { if (!started){ started = true; speakNow(); } };
+      setTimeout(() => { if (!started){ started = true; speakNow(); } }, 300);
+    } else {
+      speakNow();
+    }
+  } catch(e){}
+}
+
+// Dispatches to whichever ringtone is currently selected in the Alarm Sound picker
+function playAlarmSound(){
+  const sel = document.getElementById('ringtoneSelect');
+  const ringtone = sel ? sel.value : 'birds';
+  if (ringtone === 'sohel'){
+    playSpokenAlert('Sohel. Your session, is start.', 3);
+  } else if (ringtone === 'rubel'){
+    playSpokenAlert('Rubel. Your session, is start.', 3);
+  } else {
+    playBirdsAndCuckoo();
+  }
+}
+
+function beep(){ playAlarmSound(); }
+
+function showToast(text){
+  document.getElementById('alarmToastText').textContent = text;
+  const toast = document.getElementById('alarmToast');
+  toast.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(hideToast, 7000);
+}
+function hideToast(){
+  document.getElementById('alarmToast').classList.remove('show');
+}
+
+function checkAlarms(now){
+  const ist = currentISTParts(now);
+  SESSIONS.forEach(s=>{
+    const a = alarms[s.key];
+    if (!a) return;
+    if (a.hh === ist.hh && a.mm === ist.mm && a.lastFiredDate !== ist.dateStr){
+      a.lastFiredDate = ist.dateStr;
+      beep();
+      if (navigator.vibrate) navigator.vibrate([200,100,200]);
+      if ('Notification' in window && Notification.permission === 'granted'){
+        try{ new Notification(`⏰ ${s.name} alarm`, { body: `It's ${String(a.hh).padStart(2,'0')}:${String(a.mm).padStart(2,'0')} IST`, silent:false }); }catch(e){}
+      }
+      showToast(`⏰ ${s.name} — ${String(a.hh).padStart(2,'0')}:${String(a.mm).padStart(2,'0')} IST`);
+      if (!a.repeat) delete alarms[s.key];
+    }
+  });
+}
+
+// ---------- World Clocks (per-market local time, DST-aware via Intl) ----------
+const wcx = 75, wcy = 75, wcOuterR = 66, wcTickOuterR = 66, wcTickInnerR = 60, wcLabelR = 74,
+      wcHourR = 30, wcMinuteR = 45, wcSecondR = 58, wcArcR = 40;
+
+function wcHourToXY(hour, r){
+  const angle = (hour/24)*2*Math.PI;
+  return { x: wcx + r*Math.sin(angle), y: wcy - r*Math.cos(angle) };
+}
+function wcSixtyToXY(value, r){
+  const angle = (value/60)*2*Math.PI;
+  return { x: wcx + r*Math.sin(angle), y: wcy - r*Math.cos(angle) };
+}
+function wcArcPath(startHour, endHour, r){
+  let dur = (endHour - startHour + 24) % 24;
+  if (dur === 0) dur = 24;
+  const large = dur > 12 ? 1 : 0;
+  const s = wcHourToXY(startHour, r);
+  const e = wcHourToXY(endHour, r);
+  return `M ${s.x} ${s.y} A ${r} ${r} 0 ${large} 1 ${e.x} ${e.y}`;
+}
+
+// Returns {hh, mm, ss, gmtLabel} for a session's timezone at instant `now`
+function tzParts(tz, now){
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, hour:'2-digit', minute:'2-digit', second:'2-digit',
+    hour12:false, year:'numeric', month:'2-digit', day:'2-digit'
+  });
+  const parts = {};
+  dtf.formatToParts(now).forEach(p => { if (p.type !== 'literal') parts[p.type] = p.value; });
+  let hh = Number(parts.hour) % 24;
+  const mm = Number(parts.minute), ss = Number(parts.second);
+
+  // derive current UTC offset in minutes for this tz at this instant
+  const asUTC = Date.UTC(Number(parts.year), Number(parts.month)-1, Number(parts.day), hh, mm, ss);
+  const offsetMin = Math.round((asUTC - now.getTime()) / 60000);
+  const sign = offsetMin >= 0 ? '+' : '-';
+  const abs = Math.abs(offsetMin);
+  const ohh = Math.floor(abs/60), omm = abs%60;
+  const gmtLabel = `GMT${sign}${ohh}${omm ? ':'+String(omm).padStart(2,'0') : ':00'}`;
+
+  return { hh, mm, ss, offsetMin, gmtLabel };
+}
+
+function buildWorldClocks(){
+  const grid = document.getElementById('wcGrid');
+  grid.innerHTML = SESSIONS.map(s => `
+    <div class="wc-card" id="wc-card-${s.key}">
+      <svg viewBox="0 0 150 150" id="wc-svg-${s.key}"></svg>
+      <div class="wc-name-row">
+        <span class="wc-name">${s.flag} ${s.name}</span>
+        <span class="wc-gmt" id="wc-gmt-${s.key}">GMT+0:00</span>
+      </div>
+      <div class="wc-digital" id="wc-digital-${s.key}">--:--:--</div>
+      <div class="wc-status" id="wc-status-${s.key}">--</div>
+    </div>
+  `).join('');
+
+  SESSIONS.forEach(s => {
+    const svg = document.getElementById('wc-svg-'+s.key);
+    let html = '';
+    html += `<circle cx="${wcx}" cy="${wcy}" r="${wcOuterR}" fill="none" stroke="#1D2431" stroke-width="1"/>`;
+    for (let h=0; h<24; h++){
+      const p1 = wcHourToXY(h, wcTickOuterR);
+      const p2 = wcHourToXY(h, wcTickInnerR);
+      html += `<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="#2A3240" stroke-width="1"/>`;
+      const lp = wcHourToXY(h, wcLabelR);
+      const label = h === 0 ? 24 : h;
+      html += `<text x="${lp.x}" y="${lp.y+2.6}" text-anchor="middle" font-size="5.6" fill="#5C6577" font-family="IBM Plex Mono, monospace">${label}</text>`;
+    }
+    html += `<circle cx="${wcx}" cy="${wcy}" r="${wcArcR}" fill="none" stroke="#1A2029" stroke-width="7"/>`;
+    svg.innerHTML = html;
+
+    const arc = document.createElementNS('http://www.w3.org/2000/svg','path');
+    arc.setAttribute('id','wc-arc-'+s.key);
+    arc.setAttribute('fill','none');
+    arc.setAttribute('stroke', s.colorHex);
+    arc.setAttribute('stroke-width','7');
+    arc.setAttribute('stroke-linecap','round');
+    svg.appendChild(arc);
+
+    const hourHand = document.createElementNS('http://www.w3.org/2000/svg','line');
+    hourHand.setAttribute('id','wc-hour-'+s.key);
+    hourHand.setAttribute('stroke','#3D4A66');
+    hourHand.setAttribute('stroke-width','3.2');
+    hourHand.setAttribute('stroke-linecap','round');
+    svg.appendChild(hourHand);
+
+    const minuteHand = document.createElementNS('http://www.w3.org/2000/svg','line');
+    minuteHand.setAttribute('id','wc-minute-'+s.key);
+    minuteHand.setAttribute('stroke','#6B7CA0');
+    minuteHand.setAttribute('stroke-width','2.2');
+    minuteHand.setAttribute('stroke-linecap','round');
+    svg.appendChild(minuteHand);
+
+    const secondHand = document.createElementNS('http://www.w3.org/2000/svg','line');
+    secondHand.setAttribute('id','wc-second-'+s.key);
+    secondHand.setAttribute('stroke', s.colorHex);
+    secondHand.setAttribute('stroke-width','1.3');
+    secondHand.setAttribute('stroke-linecap','round');
+    svg.appendChild(secondHand);
+
+    const hub = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    hub.setAttribute('cx', wcx); hub.setAttribute('cy', wcy); hub.setAttribute('r', 3.4);
+    hub.setAttribute('fill', '#DADEE6');
+    svg.appendChild(hub);
+  });
+}
+
+function renderWorldClocks(now){
+  SESSIONS.forEach(s => {
+    const p = tzParts(s.tz, now);
+    const decHour = p.hh + p.mm/60 + p.ss/3600;
+    const minuteVal = p.mm + p.ss/60;
+
+    const hourXY = wcHourToXY(decHour, wcHourR);
+    const hourHand = document.getElementById('wc-hour-'+s.key);
+    hourHand.setAttribute('x1', wcx); hourHand.setAttribute('y1', wcy);
+    hourHand.setAttribute('x2', hourXY.x); hourHand.setAttribute('y2', hourXY.y);
+
+    const minuteXY = wcSixtyToXY(minuteVal, wcMinuteR);
+    const minuteHand = document.getElementById('wc-minute-'+s.key);
+    minuteHand.setAttribute('x1', wcx); minuteHand.setAttribute('y1', wcy);
+    minuteHand.setAttribute('x2', minuteXY.x); minuteHand.setAttribute('y2', minuteXY.y);
+
+    const secondXY = wcSixtyToXY(p.ss, wcSecondR);
+    const secondHand = document.getElementById('wc-second-'+s.key);
+    secondHand.setAttribute('x1', wcx); secondHand.setAttribute('y1', wcy);
+    secondHand.setAttribute('x2', secondXY.x); secondHand.setAttribute('y2', secondXY.y);
+
+    // session open/close arc, expressed in THIS city's own local hours
+    const localOpen = ((s.openUTC*60 + p.offsetMin) / 60 + 24) % 24;
+    const localClose = ((s.closeUTC*60 + p.offsetMin) / 60 + 24) % 24;
+    const arcEl = document.getElementById('wc-arc-'+s.key);
+    arcEl.setAttribute('d', wcArcPath(localOpen, localClose, wcArcR));
+
+    const openNow = sessionOpenNow(s, (now.getUTCHours() + now.getUTCMinutes()/60 + now.getUTCSeconds()/3600));
+    arcEl.setAttribute('stroke', openNow ? s.colorHex : '#C9CDD6');
+    arcEl.setAttribute('opacity', openNow ? '1' : '0.45');
+    const statusEl = document.getElementById('wc-status-'+s.key);
+    statusEl.textContent = openNow ? 'Open' : 'Closed';
+    statusEl.className = 'wc-status ' + (openNow ? 'wc-open' : 'wc-closed');
+
+    document.getElementById('wc-gmt-'+s.key).textContent = p.gmtLabel;
+    document.getElementById('wc-digital-'+s.key).textContent =
+      String(p.hh).padStart(2,'0') + ':' + String(p.mm).padStart(2,'0') + ':' + String(p.ss).padStart(2,'0');
+  });
+}
+
+// ---------- Bottom nav / view switching ----------
+let activeView = 'sessions';
+function switchView(view, pushHistory = true){
+  activeView = view;
+  document.getElementById('sessionsView').classList.toggle('active', view === 'sessions');
+  document.getElementById('worldClocksView').classList.toggle('active', view === 'worldclocks');
+  document.getElementById('navSessions').classList.toggle('active', view === 'sessions');
+  document.getElementById('navWorldClocks').classList.toggle('active', view === 'worldclocks');
+  if (view === 'worldclocks') renderWorldClocks(new Date());
+  if (pushHistory) history.pushState({ view, modal: false }, '');
+}
+document.getElementById('navSessions').addEventListener('click', () => switchView('sessions'));
+document.getElementById('navWorldClocks').addEventListener('click', () => switchView('worldclocks'));
+
+// ---------- Hardware / gesture Back button support (Android APK wrappers) ----------
+// The app is a single index.html page, so by default there's nothing in the
+// browser history for the phone's Back button to go to, and it either does
+// nothing or immediately exits the app. We fix this by pushing a history
+// entry whenever the user opens the "More" modal or switches views, and by
+// reacting to the resulting popstate event (which fires when the Back
+// button/gesture is pressed) to close the modal or return to the previous
+// view instead of leaving the app.
+history.replaceState({ view: 'sessions', modal: false }, '');
+
+window.addEventListener('popstate', (e) => {
+  const state = e.state || { view: 'sessions', modal: false };
+  document.getElementById('alarmModal').classList.toggle('open', !!state.modal);
+  if (state.view && state.view !== activeView){
+    switchView(state.view, false);
+  }
+});
+
+// ---------- Exiting the app on the final Back press (root screen) ----------
+// Some APK-wrapper shells map the hardware Back button to a Cordova-style
+// 'backbutton' event instead of (or in addition to) browser history. If we
+// don't handle that event ourselves, pressing Back at the root screen can
+// silently do nothing instead of closing the app. We handle it here: close
+// the modal / go back a view if needed, otherwise require a second press
+// within 2 seconds and then try every known "exit app" API.
+let lastBackPressAt = 0;
+function attemptExitApp(){
+  const now = Date.now();
+  if (now - lastBackPressAt < 2000){
+    if (window.navigator.app && typeof window.navigator.app.exitApp === 'function'){
+      window.navigator.app.exitApp();               // Cordova
+      return;
+    }
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App &&
+        typeof window.Capacitor.Plugins.App.exitApp === 'function'){
+      window.Capacitor.Plugins.App.exitApp();        // Capacitor
+      return;
+    }
+    try{ window.close(); }catch(e){}                 // last-resort fallback
+    return;
+  }
+  lastBackPressAt = now;
+  showToast('আবার Back চাপুন — অ্যাপ বন্ধ করতে');
+}
+
+document.addEventListener('backbutton', (e) => {
+  e.preventDefault();
+  const modalOpen = document.getElementById('alarmModal').classList.contains('open');
+  if (modalOpen){
+    closeModal();
+  } else if (activeView !== 'sessions'){
+    switchView('sessions');
+  } else {
+    attemptExitApp();
+  }
+}, false);
+
+buildDialStatic();
+buildAlarmModal();
+buildWorldClocks();
+render();
+setInterval(() => {
+  render();
+  if (activeView === 'worldclocks') renderWorldClocks(new Date());
+}, 1000);
+
+</script>
+</body>
+</html>
